@@ -9,6 +9,7 @@ use Aws\S3\S3Client;
 class ImageController extends Controller
 {
     private $storage;
+    private $currentImage;
     
     public function __construct()
     {
@@ -17,8 +18,15 @@ class ImageController extends Controller
             'version' => 'latest',
             'credentials' => ['key' => env('S3ACCESSID'), 'secret' => env('S3SECRET')]
         ]);
+
+        $this->currentImage = "public/assets/default-wine-image.png";
     }
 
+    public function getCurrentImage()
+    {
+        return $this->currentImage;
+    }
+    
     /**
     * @param Request $request
     * @return \Illuminate\Http\JsonResponse
@@ -39,12 +47,6 @@ class ImageController extends Controller
         $hash = md5(file_get_contents($path));
         $saveFileName = "$hash.".$file->getClientOriginalExtension();
 
-        // $cacheRet = Redis::get($hash);
-        // if ($cacheRet != null) {
-        //     unlink($path);
-        //     return response()->json(['set' => $cacheRet, 'file' => $saveFileName], 200);
-        // }
-
         try {
             $result = $this->storage->putObject([
                     'ACL' => 'public-read',
@@ -57,7 +59,6 @@ class ImageController extends Controller
                 ]);
             echo $result;
         } catch (\Exception $e) {
-            //dd($e->getAwsErrorMessage());
             return response()->json(['error' => $e->getMessage()], 401);
         }
 
@@ -96,15 +97,5 @@ class ImageController extends Controller
     {
         header('Content-type: image/jpeg');
         readfile($img);
-        // echo '<img src="'.$img.'"/>';
-        // $image = new \Imagick();
-        // $image->readImage($img);
-        // $length = $image->getImageLength();
-        // $mime = $image->getImageMimeType();
-        // header('Content-type: '.$mime);
-        // header('Pragma: public');
-        // header('Content-Length: '.$length);
-        // echo $image;
-        // $image->destroy();
     }
 }
