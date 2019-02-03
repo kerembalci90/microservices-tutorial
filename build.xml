@@ -1,6 +1,26 @@
 <?xml version="1.0"?>
-   <project name="Image Manager" default="hello">
-       <target name="hello">
-          <echo>Hello World!</echo>
-       </target>
+   <project name="Image Manager" default="full-build">
+        <property name="pdepend" value="${basedir}/vendor/bin/pdepend"/>
+
+        <target name="full-build" depends="prepare,static-analysis" description="Performs static analysis currently"/>
+        <target name="static-analysis" depends="pdepend" description="Performs static analysis"/>
+
+        <target name="clean" description="Cleanup build artifacts">
+            <delete dir="${basedir}/build/depend"/>
+        </target>
+
+        <target name="prepare" depends="clean" description="Prepare for build">
+            <mkdir dir="${basedir}/build/pdepend"/>
+        </target>
+
+        <target name="pdepend" depends="prepare" description="Calculate software metrics using PHP_Depend and log result in XML format. Intended for usage within a continuous integration environment.">
+            <exec executable="${pdepend}" taskname="pdepend">
+                <arg value="--jdepend-xml=${basedir}/build/logs/jdepend.xml"/>
+                <arg value="--jdepend-chart=${basedir}/build/pdepend/dependencies.svg"/>
+                <arg value="--overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg"/>
+                <arg value="--suffix=php"/>
+                <arg value="--ignore=build,tests,config,resources,storage,docs,vendor"/>
+                <arg path="${basedir}"/>
+            </exec>
+        </target>
    </project>
